@@ -46,7 +46,8 @@ export default function Layout({ children }) {
             </Link>
 
             <a
-              href="#"
+              href="https://github.com/tdkayy/my-app"
+              target="_blank"
               className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg px-3 py-2 hover:from-blue-700 hover:to-blue-800"
             >
               <Github className="w-4 h-4" />
