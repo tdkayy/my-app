@@ -1,23 +1,17 @@
-// src/components/dashboard/AddTransactionForm.jsx
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 /**
  * Props:
  * - onAdd: ({ date, merchant, amount }) => Promise<void> | void
+ *   - date: ISO string 'YYYY-MM-DD'
+ *   - merchant: string
+ *   - amount: number | string (decimal, e.g., 12.34)
  */
 export default function AddTransactionForm({ onAdd }) {
-  // default to today (YYYY-MM-DD)
-  const today = useMemo(() => {
-    const d = new Date();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${mm}-${dd}`;
-  }, []);
-
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState("2025-08-10");
   const [merchant, setMerchant] = useState("");
   const [amount, setAmount] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
@@ -29,71 +23,81 @@ export default function AddTransactionForm({ onAdd }) {
       return;
     }
     const parsed = Number(amount);
-    if (!Number.isFinite(parsed)) {
+    if (Number.isNaN(parsed)) {
       setError("Amount must be a number.");
       return;
     }
 
     try {
-      setBusy(true);
+      setSubmitting(true);
       await onAdd?.({ date, merchant: merchant.trim(), amount: parsed });
       setMerchant("");
       setAmount("");
     } catch (e) {
       setError(e?.message || "Failed to add transaction");
     } finally {
-      setBusy(false);
+      setSubmitting(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1fr auto", gap: 12 }}>
-        <label style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontWeight: 600, marginBottom: 6 }}>Date</span>
+      <div className="grid gap-3 md:grid-cols-[1fr,1.5fr,1fr,auto]">
+        <label className="flex flex-col">
+          <span className="font-semibold text-sm mb-1 text-slate-700">Date</span>
           <input
+            name="date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            disabled={busy}
+            disabled={submitting}
             required
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
-        <label style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontWeight: 600, marginBottom: 6 }}>Merchant</span>
+        <label className="flex flex-col">
+          <span className="font-semibold text-sm mb-1 text-slate-700">Merchant</span>
           <input
+            name="merchant"
             type="text"
             placeholder="Pret A Manger"
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
-            disabled={busy}
+            disabled={submitting}
             required
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
-        <label style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontWeight: 600, marginBottom: 6 }}>Amount (£)</span>
+        <label className="flex flex-col">
+          <span className="font-semibold text-sm mb-1 text-slate-700">Amount (£)</span>
           <input
+            name="amount"
             type="number"
             step="0.01"
             inputMode="decimal"
             placeholder="12.34"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            disabled={busy}
+            disabled={submitting}
             required
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
-        <div style={{ alignSelf: "end" }}>
-          <button type="submit" disabled={busy} style={{ padding: "10px 12px" }}>
-            {busy ? "Adding…" : "Add"}
+        <div className="self-end">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-semibold shadow-sm hover:bg-blue-700 disabled:opacity-60"
+          >
+            {submitting ? "Adding…" : "Add"}
           </button>
         </div>
       </div>
 
-      {error ? <div style={{ color: "#b91c1c", marginTop: 8 }}>{error}</div> : null}
+      {error ? <div className="text-red-600 mt-2 text-sm">{error}</div> : null}
     </form>
   );
 }

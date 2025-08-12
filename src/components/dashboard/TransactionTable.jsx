@@ -65,7 +65,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     });
   }, [sorted, debouncedQ, category, from, to]);
 
-  // --- Export CSV (unchanged) ---
+  // --- Download Transactions (unchanged) ---
   function escapeCSVField(v) {
     const s = v == null ? "" : String(v);
     return `"${s.replace(/"/g, '""')}"`;
@@ -99,7 +99,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // --- Import CSV ---
+  // --- Import Transactions ---
   function handleChooseFile() {
     setImportErr("");
     setImportPreview([]);
@@ -167,49 +167,81 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   }
 
   return (
-    <div className="txTableWrap" style={{ display: "grid", gap: 8 }}>
+    
+    <div className="txTableWrap" style={{ display: "grid", gap: 15 }}>
       {/* Controls */}
       <div
-        className="tableHeader"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(240px, 1fr) 180px repeat(2, 160px) auto auto auto",
-          gap: 8,
-          alignItems: "center"
-        }}
+  className="tableHeader grid items-center gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto]"
+>
+  
+  <input
+    type="search"
+    placeholder="Search…"
+    value={q}
+    onChange={(e) => setQ(e.target.value)}
+    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+  />
+
+  <select
+    value={category}
+    onChange={(e) => setCategory(e.target.value)}
+    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+  >
+    {categories.map((c) => (
+      <option key={c} value={c}>{c}</option>
+    ))}
+  </select>
+
+  <input
+    type="date"
+    value={from}
+    onChange={(e) => setFrom(e.target.value)}
+    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+  />
+  <input
+    type="date"
+    value={to}
+    onChange={(e) => setTo(e.target.value)}
+    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+  />
+
+  <span className="justify-self-end text-sm text-slate-500">
+    {filtered.length} / {rows.length} rows
+  </span>
+
+  <button
+    onClick={downloadCSV}
+    className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+  >
+    Download Transactions
+  </button>
+
+  <span className="justify-self-end inline-flex items-center gap-2">
+    <input
+      ref={fileRef}
+      type="file"
+      accept=".csv,text/csv"
+      onChange={handleFileChange}
+      className="hidden"
+    />
+    <button
+      onClick={handleChooseFile}
+      className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+    >
+      Import Transactions
+    </button>
+    {onBulkAdd ? (
+      <button
+        onClick={handleImportAdd}
+        disabled={!importCount || importBusy}
+        className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <input
-          type="search"
-          placeholder="Search merchant, category, comment…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          style={input}
-        />
-        <select value={category} onChange={(e) => setCategory(e.target.value)} style={input}>
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={input} />
-        <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={input} />
-        <span style={{ justifySelf: "end", color: "#6b7280" }}>
-          {filtered.length} / {rows.length} rows
-        </span>
-        <button onClick={downloadCSV} style={button}>Export CSV</button>
-        <span style={{ display: "inline-flex", gap: 8, alignItems: "center", justifySelf: "end" }}>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,text/csv"
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-          />
-          <button onClick={handleChooseFile} style={button}>Import CSV</button>
-          {onBulkAdd ? (
-            <button onClick={handleImportAdd} style={{ ...button, opacity: importCount ? 1 : 0.6 }} disabled={!importCount || importBusy}>
-              {importBusy ? "Importing…" : `Import & Add (${importCount})`}
-            </button>
-          ) : null}
-        </span>
-      </div>
+        {importBusy ? "Importing…" : `Import & Add (${importCount})`}
+      </button>
+    ) : null}
+  </span>
+</div>
+
 
       {/* Import preview */}
       {(importPreview.length > 0 || importErr) && (
@@ -254,43 +286,35 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
       )}
 
       {/* Main table */}
-      <div style={{ overflow: "auto", maxHeight: "65vh", border: "1px solid #e5e7eb", borderRadius: 10 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead style={{ position: "sticky", top: 0, background: "#f9fafb" }}>
-            <tr>
-              <th style={th}>Date</th>
-              <th style={th}>Merchant</th>
-              <th style={th}>Category</th>
-              <th style={th}>Amount</th>
-              <th style={th}>Currency</th>
-              <th style={th}>Comment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((tx) => {
-              const dateText = tx?.date ? safeDate(tx.date) : "";
-              return (
-                <tr key={tx.id}>
-                  <td style={td}>{dateText}</td>
-                  <td style={td}>{tx.merchant || ""}</td>
-                  <td style={td}><Badge text={(tx.category || "Uncategorized")} /></td>
-                  <td style={{ ...td, fontVariantNumeric: "tabular-nums" }}>
-                    {formatMoneyCents(tx.amountCents, tx.currency || "GBP")}
-                  </td>
-                  <td style={td}>{tx.currency || "GBP"}</td>
-                  <td style={td}>{tx.comment || ""}</td>
-                </tr>
-              );
-            })}
-            {!filtered.length && (
-              <tr>
-                <td style={td} colSpan={6}>No matching transactions.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <div className="overflow-auto rounded-xl border border-slate-200">
+  <table className="w-full border-collapse text-sm">
+    <thead className="sticky top-0 bg-slate-50">
+      <tr className="text-left">
+        {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
+          <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">{h}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {filtered.map(tx=>(
+        <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
+          <td className="border-b border-slate-100 px-3 py-2">{safeDate(tx.date)}</td>
+          <td className="border-b border-slate-100 px-3 py-2">{tx.merchant}</td>
+          <td className="border-b border-slate-100 px-3 py-2">
+            <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">{tx.category || "Uncategorized"}</span>
+          </td>
+          <td className="border-b border-slate-100 px-3 py-2 tabular-nums">{formatMoneyCents(tx.amountCents, tx.currency||"GBP")}</td>
+          <td className="border-b border-slate-100 px-3 py-2">{tx.currency||"GBP"}</td>
+          <td className="border-b border-slate-100 px-3 py-2">{tx.comment||""}</td>
+        </tr>
+      ))}
+      {!filtered.length && (
+        <tr><td className="px-3 py-6 text-slate-500" colSpan={6}>No matching transactions.</td></tr>
+      )}
+    </tbody>
+  </table>
+</div>
+</div>
   );
 }
 

@@ -5,7 +5,7 @@ $payload = [
     'command'           => 'Authenticate',
     'partnerName'       => 'applicant',
     'partnerPassword'   => 'd7c3119c6cdab02d68d9',
-    'partnerUserID'     => 'expensifytest@mailinator.com',
+    'partnerUserID'     => 'expensifytest@mailinator.com ',
     'partnerUserSecret' => 'hire_me',
 ];
 

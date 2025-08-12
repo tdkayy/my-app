@@ -18,29 +18,29 @@ export default function Documentation() {
     {
       title: "Authentication System",
       description: "Implement secure login",
-      time: "10 days",
+      time: "3 days",
       status: "completed",
       technologies: ["JavaScript", "AJAX", "Cookie Management"]
     },
     {
       title: "Transaction Management",
       description: "Create, read, and display transaction data",
-      time: "3 days", 
+      time: "5 days", 
       status: "completed",
       technologies: ["PHP Proxy", "API Integration", "Data Processing"]
     },
     {
       title: "Real-time UI Updates",
       description: "Single-page application without page refreshes",
-      time: "4 days",
+      time: "ongoing",
       status: "completed", 
       technologies: ["Vanilla JavaScript", "DOM Manipulation", "State Management"]
     },
     {
       title: "Performance Optimization",
       description: "Handle large datasets efficiently",
-      time: "5 days",
-      status: "completed",
+      time: "ongoing",
+      status: "ongoing",
       technologies: ["Virtual Scrolling", "Data Caching", "Lazy Loading"]
     }
   ];
@@ -77,7 +77,7 @@ export default function Documentation() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Section */}
+      {/* Reason/Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,7 +86,7 @@ export default function Documentation() {
         <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
           <Target className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-4xl font-bold gradient-text mb-4">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-blue-700 to-blue-500 bg-clip-text text-transparent">
           Adesanya Banking
         </h1>
         <p className="text-xl text-slate-600 max-w-3xl mx-auto">
@@ -95,7 +95,9 @@ export default function Documentation() {
         </p>
       </motion.div>
 
-      {/* Challenge Overview */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-10">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-6">
+      {/* Project Overview */}
       <div className="grid lg:grid-cols-2 gap-8 mb-16">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -260,6 +262,8 @@ export default function Documentation() {
           </div>
         </div>
       </motion.div>
+      </div>
+      </section>
     </div>
   );
 }
