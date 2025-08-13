@@ -115,8 +115,8 @@ export default function Dashboard() {
           <button
             onClick={refresh}
             disabled={loading}
-            className="rounded-lg border border-slate-300 bg-amber-600 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-60"
-          >
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-700 rounded-lg px-3 py-2 hover:from-amber-700 hover:to-amber-800 whitespace-nowrap"
+            >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
 
@@ -130,8 +130,8 @@ export default function Dashboard() {
 
           <button
             onClick={handleLogout}
-            className="rounded-lg border border-slate-300 bg-red-600 px-3 py-2 text-sm hover:bg-slate-50"
-          >
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 rounded-lg px-3 py-2 hover:from-red-700 hover:to-red-800 whitespace-nowrap"
+            >
             Log out
           </button>
         </div>

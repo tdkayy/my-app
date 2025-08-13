@@ -183,8 +183,8 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
 
         <button
           onClick={downloadCSV}
-          className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 whitespace-nowrap"
-        >
+          className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg px-3 py-2 hover:from-blue-700 hover:to-blue-800 whitespace-nowrap"
+          >
           Download Transactions
         </button>
 
@@ -198,8 +198,8 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           />
           <button
             onClick={handleChooseFile}
-            className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 whitespace-nowrap"
-          >
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg px-3 py-2 hover:from-blue-700 hover:to-blue-800 whitespace-nowrap"
+            >
             Import Transactions
           </button>
           {onBulkAdd ? (
