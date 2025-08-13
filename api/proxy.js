@@ -1,20 +1,7 @@
-// api/proxy.js
-// Node serverless proxy for Expensify on Vercel
-
+// /api/proxy.js
+// ESM Node function on Vercel (no runtime export needed)
 const EXPENSIFY_API_URL =
   process.env.EXPENSIFY_API_URL || "https://www.expensify.com/api";
-
-function normalizeToISODate(v) {
-  if (typeof v === "number" && Number.isFinite(v)) {
-    return new Date(v * 1000).toISOString().slice(0, 10);
-  }
-  const s = String(v || "").trim();
-  if (!s) return new Date().toISOString().slice(0, 10);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const t = Date.parse(s);
-  if (Number.isFinite(t)) return new Date(t).toISOString().slice(0, 10);
-  return new Date().toISOString().slice(0, 10);
-}
 
 function corsHeaders(origin) {
   return {
@@ -23,21 +10,40 @@ function corsHeaders(origin) {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
-
 function sendJSON(res, status, obj, origin) {
   res.statusCode = status;
   const headers = { "Content-Type": "application/json", ...corsHeaders(origin) };
   for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
   res.end(JSON.stringify(obj));
 }
-
 async function readJsonBody(req) {
   try {
     if (req.body && typeof req.body === "object") return req.body;
     if (typeof req.body === "string" && req.body.trim()) return JSON.parse(req.body);
     if (typeof req.json === "function") return await req.json();
   } catch {}
-  return {};
+  // stream fallback
+  let raw = "";
+  for await (const chunk of req) raw += chunk;
+  try { return JSON.parse(raw || "{}"); } catch { return {}; }
+}
+function toISODate(v) {
+  if (!v) return new Date().toISOString().slice(0, 10);
+  if (typeof v === "number" && Number.isFinite(v)) {
+    return new Date(v * 1000).toISOString().slice(0, 10);
+  }
+  const s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? new Date(t).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+}
+function toFormEncoded(obj) {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined || v === null) continue;
+    p.append(k, typeof v === "object" ? JSON.stringify(v) : String(v));
+  }
+  return p.toString();
 }
 
 export default async function handler(req, res) {
@@ -45,12 +51,10 @@ export default async function handler(req, res) {
 
   // CORS preflight
   if (req.method === "OPTIONS") {
-    const headers = corsHeaders(allowOrigin);
-    for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
+    for (const [k, v] of Object.entries(corsHeaders(allowOrigin))) res.setHeader(k, v);
     res.statusCode = 204;
     return res.end();
   }
-
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return sendJSON(res, 405, { error: "Method not allowed" }, allowOrigin);
@@ -60,51 +64,44 @@ export default async function handler(req, res) {
   const command = String(body?.command || "").trim();
   if (!command) return sendJSON(res, 400, { error: "Missing command" }, allowOrigin);
 
-  // Build upstream payload
-  const upstream = { ...body };
+  // Build the payload Expensify expects (flat fields, form-encoded)
+  const upstream = { command, ...body };
 
-  // Add partner creds for Authenticate
   if (command === "Authenticate") {
     upstream.partnerName = process.env.PARTNER_NAME || "applicant";
     upstream.partnerPassword = process.env.PARTNER_PASSWORD || "";
+    // keep partnerUserID / partnerUserSecret from body as-is
   }
 
-  // Normalize CreateTransaction shape
   if (command === "CreateTransaction") {
-    if (!upstream.transaction) {
-      upstream.transaction = {
-        created: normalizeToISODate(upstream.created),
-        merchant: upstream.merchant || "",
-        amount: Number(upstream.amount || 0),
-        currency: upstream.currency || "GBP",
-      };
-      delete upstream.created;
-      delete upstream.merchant;
-      delete upstream.amount;
-      delete upstream.currency;
-    } else {
-      upstream.transaction = {
-        ...upstream.transaction,
-        created: normalizeToISODate(upstream.transaction.created),
-      };
-    }
+    // flatten: created/merchant/amount/currency at top-level
+    upstream.created  = toISODate(body.created);
+    upstream.merchant = String(body.merchant || "");
+    upstream.currency = (body.currency || "GBP").toUpperCase();
+    // amount must be decimal (not cents)
+    upstream.amount   = Number.isFinite(body.amount) ? Number(body.amount) : (Number(body.amountCents || 0) / 100);
+    // remove any nested object callers might have sent
+    delete upstream.transaction;
+    delete upstream.amountCents;
   }
 
-  // Forward to Expensify
+  // Forward as application/x-www-form-urlencoded
   let upstreamRes;
   try {
     upstreamRes = await fetch(EXPENSIFY_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(upstream),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: toFormEncoded(upstream),
     });
   } catch (e) {
     return sendJSON(res, 502, { error: "Upstream fetch failed", detail: String(e) }, allowOrigin);
   }
 
   const text = await upstreamRes.text();
+  // Expensify returns JSON for success/fail; if HTML/plain appears, surface snippet
   try {
     const json = JSON.parse(text);
+    // If they use jsonCode pattern, pass it straight through
     return sendJSON(res, upstreamRes.ok ? upstreamRes.status : 502, json, allowOrigin);
   } catch {
     return sendJSON(
@@ -115,8 +112,3 @@ export default async function handler(req, res) {
     );
   }
 }
-
-// Use Node serverless runtime (remove this block entirely if you prefer defaults)
-export const config = {
-  runtime: "nodejs",
-};

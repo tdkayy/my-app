@@ -1,8 +1,7 @@
 {
     "version": 2,
-    "builds": [{ "src": "dist/**", "use": "@vercel/static" }],
-    "routes": [
-        { "src": "^/api(?:/.*)?$", "dest": "/api/proxy.js" },
-        { "src": "^(?!/api).*", "dest": "/index.html" }
+    "rewrites": [
+        { "source": "/api.php", "destination": "/api/proxy" },
+        { "source": "/(.*)", "destination": "/index.html" }
     ]
 }

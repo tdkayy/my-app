@@ -1,13 +1,11 @@
 {
     "name": "my-app",
     "private": true,
-    "version": "0.0.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview",
-        "vercel-build": "vite build"
+        "preview": "vite preview"
     },
     "dependencies": {
         "framer-motion": "^12.23.12",

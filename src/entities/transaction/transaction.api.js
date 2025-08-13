@@ -49,7 +49,11 @@ export async function authAndGetToken({ email, password }) {
 }
 
 export async function fetchAllTransactions(authToken) {
-  const res  = await postToAPI({ command: "Get", authToken });
+  const res  = await postToAPI({
+    command: "Get",
+    authToken,
+    returnValueList: "transactionList",
+  });
   console.log("[fetchAllTransactions ←]", res);
   const list = res.transactionList || res.transactions || res || [];
   return (Array.isArray(list) ? list : []).map(normalizeUpstream);
@@ -65,10 +69,10 @@ export async function createNewTransaction(
   const payload = {
     command: "CreateTransaction",
     authToken,
-    created,         // epoch seconds (UTC midnight of chosen day)
-    merchant,        // string
-    amount,          // decimal, e.g., 12.34
-    currency,        // "GBP"
+    created,                        // epoch seconds (UTC midnight for the given day)
+    merchant,
+    amount,                         // decimal
+    currency: (currency || "GBP").toUpperCase(),
   };
   console.log("[CreateTx → payload]", payload);
 
@@ -80,13 +84,12 @@ export async function createNewTransaction(
     (res && res.transaction) ||
     (res && res.data && Object.keys(res.data).length ? res.data : null);
 
-  // Build a complete object and merge API result over it
   const base = {
     transactionID: String(Date.now() + Math.random()),
     created,
     merchant,
     amount,
-    currency,
+    currency: (currency || "GBP").toUpperCase(),
     category: "Uncategorized",
     comment: "(pending)",
   };

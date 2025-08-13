@@ -1,9 +1,7 @@
 // src/lib/apiClient.js
 
-const API_URL =
-    import.meta.env.PROD ?
-    "/api/proxy" :
-    "/api.php"; // local PHP dev OR you can also use /api/proxy locally if you want
+export const API_URL =
+    import.meta.env.PROD ? "/api/proxy" : "/api/proxy";
 
 export async function postToAPI(body) {
     const res = await fetch(API_URL, {
@@ -20,7 +18,7 @@ export async function postToAPI(body) {
     const json = await res.json().catch(() => null);
     if (!json) throw new Error("Invalid JSON from API");
 
-    // Normalize error shape
+    // Normalize error shape (Expensify legacy)
     if (json.error) throw new Error(json.error);
     if (typeof json.jsonCode !== "undefined" && json.jsonCode !== 200 && !json.authToken) {
         throw new Error(json.message || json.title || "Expensify error");
@@ -28,7 +26,7 @@ export async function postToAPI(body) {
     return json;
 }
 
-// named exports expected by transaction.api.js
+// ---- named exports (OK to keep if you use them elsewhere) ----
 export function authenticate({ email, password }) {
     return postToAPI({
         command: "Authenticate",
@@ -38,13 +36,18 @@ export function authenticate({ email, password }) {
 }
 
 export function getTransactions(authToken) {
-    return postToAPI({ command: "Get", authToken });
+    // Explicitly ask for the transactions list (more robust)
+    return postToAPI({
+        command: "Get",
+        authToken,
+        returnValueList: "transactionList",
+    });
 }
 
 export function createTransaction(authToken, payload) {
-    // we can keep sending the *flat* shape; the serverless function normalizes it
+    // Keep sending flat fields; proxy normalizes and form-encodes upstream
     const created = (() => {
-        if (typeof payload.created === "number") return payload.created;
+        if (typeof payload.created === "number") return payload.created; // epoch seconds
         const iso = String(payload.date || "");
         const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (m) {
@@ -64,6 +67,6 @@ export function createTransaction(authToken, payload) {
         created,
         merchant: payload.merchant,
         amount,
-        currency: payload.currency || "GBP",
+        currency: (payload.currency || "GBP").toUpperCase(),
     });
 }
