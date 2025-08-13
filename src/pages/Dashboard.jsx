@@ -115,7 +115,7 @@ export default function Dashboard() {
           <button
             onClick={refresh}
             disabled={loading}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-700 rounded-lg px-3 py-2 hover:from-amber-700 hover:to-amber-800 whitespace-nowrap"
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg px-3 py-2 hover:from-yellow-700 hover:to-yellow-800 whitespace-nowrap"
             >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
