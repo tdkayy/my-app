@@ -1,8 +1,4 @@
 // api/proxy.js
-export const config = {
-    runtime: "nodejs",            
-    regions: ["iad1", "lhr1"],      // optional: close to you
-  };
   
   // Helper: safely parse body for both prod & local dev
   async function readJsonBody(req) {
