@@ -1,6 +1,6 @@
 // api/proxy.js
 export const config = {
-    runtime: "nodejs20",            // ensure Node 20 (has global fetch)
+    runtime: "nodejs",            
     regions: ["iad1", "lhr1"],      // optional: close to you
   };
   
