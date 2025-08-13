@@ -9,7 +9,7 @@ export function setCookie(name, value, daysOrOptions = 7) {
 
     const days = typeof opts.days === 'number' ? opts.days : 7;
     const path = opts.path || '/';
-    const domain = opts.domain; // e.g. ".yourdomain.com"
+    const domain = opts.domain;
     const isHTTPS = typeof location !== 'undefined' && location.protocol === 'https:';
 
     // By default, add Secure+SameSite=Lax on HTTPS to reduce CSRF risk
