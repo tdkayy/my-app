@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+// src/Dashboard.jsx
+import React, { useCallback, useEffect, useState } from "react";
 import { setCookie, getCookie, deleteCookie } from "lib/cookies";
 import { authAndGetToken, fetchAllTransactions, createNewTransaction } from "entities/transaction";
 import AddTransactionForm from "components/dashboard/AddTransactionForm.jsx";
@@ -6,8 +7,7 @@ import AuthForm from "components/dashboard/AuthForm.jsx";
 import TransactionTable from "components/dashboard/TransactionTable.jsx";
 import StatsOverview from "components/dashboard/StatsOverview.jsx";
 import ErrorBoundary from "components/dashboard/ErrorBoundary";
-import { Plus, X } from "lucide-react";
-import Modal from "components/ui/Modal";  
+import { Plus } from "lucide-react";
 
 export default function Dashboard() {
   const [authToken, setAuthToken] = useState(getCookie("authToken") || "");
@@ -15,14 +15,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [transactions, setTransactions] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
-
-  const focusRef = useRef(null);
-  useEffect(() => { if (showAdd) focusRef.current?.focus(); }, [showAdd]);
-
-  // NEW: controls the modal visibility
-  const [showAddModal, setShowAddModal] = useState(false);
-  const modalFirstFieldRef = useRef(null);
+  const [showModal, setShowModal] = useState(false); // purely presentational
 
   const refresh = useCallback(async () => {
     if (!authToken) return;
@@ -86,8 +79,7 @@ export default function Dashboard() {
     const amountCents = Math.round(Number(amount) * 100);
     try {
       await createNewTransaction(authToken, { date, merchant, amountCents, currency: "GBP" });
-      await refresh();                  // authoritative refresh
-      setShowAddModal(false);           // close modal on success
+      await refresh();
     } catch (e) {
       console.error(e);
       setError(e?.message || "Create failed");
@@ -101,20 +93,6 @@ export default function Dashboard() {
     return () => clearTimeout(t);
   }, [error]);
 
-  // ===== Modal UX bits (backdrop click + ESC) =====
-  useEffect(() => {
-    if (!showAddModal) return;
-    const onKey = (e) => { if (e.key === "Escape") setShowAddModal(false); };
-    window.addEventListener("keydown", onKey);
-    // focus first field (date) once modal opens (non-breaking to AddTransactionForm)
-    setTimeout(() => {
-      modalFirstFieldRef.current?.focus?.();
-    }, 0);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [showAddModal]);
-
-  const stop = (e) => e.stopPropagation();
-
   if (!authToken) {
     return (
       <ErrorBoundary>
@@ -125,64 +103,73 @@ export default function Dashboard() {
 
   return (
     <ErrorBoundary>
-      <div className="page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header */}
-        <header className="mb-4 flex items-center justify-between gap-3">
-          <div className="text-sm text-slate-600">
-            {userEmail ? (
-              <>Welcome <span className="font-medium text-slate-900">{userEmail}</span></>
-            ) : ("signed in")}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={refresh}
-              disabled={loading}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-60"
-            >
-              {loading ? "Refreshing…" : "Refresh"}
-            </button>
-
-            {/* Open modal */}
-            <button
-              onClick={() => setShowAdd(true)}
-              className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              <Plus className="mr-1.5 h-4 w-4" />
-              Add Transaction
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50"
-            >
-              Log out
-            </button>
-          </div>
-        </header>
-
-        {/* KPI cards */}
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-4 mb-4">
-          <StatsOverview transactions={transactions} loading={loading} />
+      {/* Page header */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-slate-600">
+          {userEmail ? (
+            <>Welcome <span className="font-medium text-slate-900">{userEmail}</span></>
+          ) : ("signed in")}
         </div>
 
-        {/* Table */}
-        <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 mt-4 p-4">
-          <TransactionTable rows={transactions} onBulkAdd={undefined} />
-        </section>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-60"
+          >
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
 
-        {error ? <div className="text-red-600 mt-3 text-sm">{error}</div> : null}
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add Transaction
+          </button>
 
-        {/* Modal with your exact form component */}
-        <Modal title="Add New Transaction" open={showAdd} onClose={() => setShowAdd(false)}>
-          <AddTransactionForm
-            onAdd={async (data) => {
-              await handleAdd(data);
-              setShowAdd(false);         // close on success
-            }}
-          />
-        </Modal>
+          <button
+            onClick={handleLogout}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            Log out
+          </button>
+        </div>
       </div>
+
+      {/* KPI cards */}
+      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-4 mb-4">
+        <StatsOverview transactions={transactions} loading={loading} />
+      </div>
+
+      {/* Table */}
+      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-4">
+        <TransactionTable rows={transactions} onBulkAdd={undefined} />
+      </section>
+
+      {error ? <div className="text-red-600 mt-3 text-sm">{error}</div> : null}
+
+      {/* Modal (presentation only) */}
+      {showModal && (
+        <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center p-4 bg-slate-900/40">
+          <div className="w-full sm:max-w-lg rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/70">
+            <div className="border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+              <h3 className="text-base font-semibold">Add New Transaction</h3>
+              <button
+                className="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100"
+                onClick={() => setShowModal(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4">
+              {/* vertical form layout already handled in AddTransactionForm */}
+              <AddTransactionForm onAdd={async (...a) => { await handleAdd(...a); setShowModal(false); }} />
+            </div>
+          </div>
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

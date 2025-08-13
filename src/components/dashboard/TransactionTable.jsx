@@ -1,11 +1,7 @@
+// src/components/dashboard/TransactionTable.jsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { formatMoneyCents } from "entities/transaction/transaction.model";
 
-/**
- * Props:
- * - rows: Array<{ id, date, merchant, amountCents, currency, category, comment }>
- * - onBulkAdd?: (items: Array<{ date, merchant, amountCents, currency, category?, comment? }>) => Promise<void> | void
- */
 export default function TransactionTable({ rows = [], onBulkAdd }) {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("All");
@@ -13,26 +9,22 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   const [to, setTo] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
 
-  // import state
   const fileRef = useRef(null);
-  const [importPreview, setImportPreview] = useState([]); // normalized preview rows
+  const [importPreview, setImportPreview] = useState([]);
   const [importCount, setImportCount] = useState(0);
   const [importErr, setImportErr] = useState("");
   const [importBusy, setImportBusy] = useState(false);
 
-  // Debounce search input
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim().toLowerCase()), 200);
     return () => clearTimeout(t);
   }, [q]);
 
-  // Categories available in data
   const categories = useMemo(() => {
     const set = new Set(rows.map(r => (r.category || "Uncategorized").trim() || "Uncategorized"));
     return ["All", ...Array.from(set)];
   }, [rows]);
 
-  // Sort newest first
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => {
       const da = Date.parse(a?.date || 0) || 0;
@@ -41,7 +33,6 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     });
   }, [rows]);
 
-  // Apply filters
   const filtered = useMemo(() => {
     const fromTs = from ? Date.parse(from) : null;
     const toTs = to ? Date.parse(to) : null;
@@ -65,7 +56,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     });
   }, [sorted, debouncedQ, category, from, to]);
 
-  // --- Download Transactions (unchanged) ---
+  // CSV helpers (unchanged)
   function escapeCSVField(v) {
     const s = v == null ? "" : String(v);
     return `"${s.replace(/"/g, '""')}"`;
@@ -99,24 +90,19 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // --- Import Transactions ---
+  // Import
   function handleChooseFile() {
-    setImportErr("");
-    setImportPreview([]);
-    setImportCount(0);
+    setImportErr(""); setImportPreview([]); setImportCount(0);
     fileRef.current?.click();
   }
-
   async function handleFileChange(e) {
-    setImportErr("");
-    setImportPreview([]);
-    setImportCount(0);
+    setImportErr(""); setImportPreview([]); setImportCount(0);
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       const text = await file.text();
-      const rows = parseCSV(text); // array of objects keyed by header
+      const rows = parseCSV(text);
       const normalized = [];
       for (const r of rows) {
         const date = normalizeDate(r.Date || r.date || r["Transaction Date"] || "");
@@ -127,34 +113,27 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
         const amountDec = parseFloat(String(r.Amount ?? r.amount ?? "0").replace(/[, ]/g, ""));
         const amountCents = Number.isFinite(amountDec) ? Math.round(amountDec * 100) : 0;
 
-        if (!date || !merchant || !Number.isFinite(amountCents)) continue; // basic validation
-
+        if (!date || !merchant || !Number.isFinite(amountCents)) continue;
         normalized.push({ date, merchant, amountCents, currency, category, comment });
       }
       setImportPreview(normalized.slice(0, 10));
       setImportCount(normalized.length);
-      // stash full set on the element for later submit (no global state)
       e.target._fullParsed = normalized;
     } catch (err) {
       setImportErr(err?.message || "Failed to parse CSV");
     }
   }
-
   async function handleImportAdd() {
     if (!onBulkAdd) return;
     const input = fileRef.current;
     const normalized = input?._fullParsed || [];
     if (!normalized.length) {
-      setImportErr("Nothing to import.");
-      return;
+      setImportErr("Nothing to import."); return;
     }
-    setImportBusy(true);
-    setImportErr("");
+    setImportBusy(true); setImportErr("");
     try {
       await onBulkAdd(normalized);
-      // clear state after success
-      setImportPreview([]);
-      setImportCount(0);
+      setImportPreview([]); setImportCount(0);
       if (fileRef.current) {
         fileRef.current.value = "";
         fileRef.current._fullParsed = undefined;
@@ -167,114 +146,105 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   }
 
   return (
-    
-    <div className="txTableWrap" style={{ display: "grid", gap: 15 }}>
+    <div className="txTableWrap grid gap-4">
       {/* Controls */}
-      <div
-  className="tableHeader grid items-center gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto]"
->
-  
-  <input
-    type="search"
-    placeholder="Search…"
-    value={q}
-    onChange={(e) => setQ(e.target.value)}
-    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-  />
+      <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto]">
+        <input
+          type="search"
+          placeholder="Search…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+        />
 
-  <select
-    value={category}
-    onChange={(e) => setCategory(e.target.value)}
-    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-  >
-    {categories.map((c) => (
-      <option key={c} value={c}>{c}</option>
-    ))}
-  </select>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+        >
+          {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
+        </select>
 
-  <input
-    type="date"
-    value={from}
-    onChange={(e) => setFrom(e.target.value)}
-    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-  />
-  <input
-    type="date"
-    value={to}
-    onChange={(e) => setTo(e.target.value)}
-    className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-  />
+        <input
+          type="date"
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+        />
+        <input
+          type="date"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
+        />
 
-  <span className="justify-self-end text-sm text-slate-500">
-    {filtered.length} / {rows.length} rows
-  </span>
+        <span className="justify-self-start md:justify-self-end self-center text-sm text-slate-500">
+          {filtered.length} / {rows.length} rows
+        </span>
 
-  <button
-    onClick={downloadCSV}
-    className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
-  >
-    Download Transactions
-  </button>
+        <button
+          onClick={downloadCSV}
+          className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+        >
+          Download Transactions
+        </button>
 
-  <span className="justify-self-end inline-flex items-center gap-2">
-    <input
-      ref={fileRef}
-      type="file"
-      accept=".csv,text/csv"
-      onChange={handleFileChange}
-      className="hidden"
-    />
-    <button
-      onClick={handleChooseFile}
-      className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
-    >
-      Import Transactions
-    </button>
-    {onBulkAdd ? (
-      <button
-        onClick={handleImportAdd}
-        disabled={!importCount || importBusy}
-        className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {importBusy ? "Importing…" : `Import & Add (${importCount})`}
-      </button>
-    ) : null}
-  </span>
-</div>
-
+        <span className="justify-self-start md:justify-self-end inline-flex flex-wrap items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            onClick={handleChooseFile}
+            className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+          >
+            Import Transactions
+          </button>
+          {onBulkAdd ? (
+            <button
+              onClick={handleImportAdd}
+              disabled={!importCount || importBusy}
+              className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {importBusy ? "Importing…" : `Import & Add (${importCount})`}
+            </button>
+          ) : null}
+        </span>
+      </div>
 
       {/* Import preview */}
       {(importPreview.length > 0 || importErr) && (
-        <div className="card" style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 12 }}>
-          {importErr ? <div style={{ color: "#b91c1c", marginBottom: 8 }}>{importErr}</div> : null}
-          {!importErr && (
+        <div className="rounded-xl border border-slate-200 p-3">
+          {importErr ? (
+            <div className="text-red-700 mb-2">{importErr}</div>
+          ) : (
             <>
-              <div style={{ color: "#6b7280", marginBottom: 8 }}>
+              <div className="text-slate-500 mb-2">
                 Previewing first {importPreview.length} of {importCount} parsed rows
               </div>
-              <div style={{ overflow: "auto", maxHeight: 240 }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <div className="overflow-auto max-h-60">
+                <table className="w-full border-collapse text-sm">
                   <thead>
-                    <tr>
-                      <th style={th}>Date</th>
-                      <th style={th}>Merchant</th>
-                      <th style={th}>Category</th>
-                      <th style={th}>Amount</th>
-                      <th style={th}>Currency</th>
-                      <th style={th}>Comment</th>
+                    <tr className="text-left">
+                      {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
+                        <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">{h}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {importPreview.map((tx, i) => (
-                      <tr key={i}>
-                        <td style={td}>{safeDate(tx.date)}</td>
-                        <td style={td}>{tx.merchant}</td>
-                        <td style={td}>{tx.category}</td>
-                        <td style={{ ...td, fontVariantNumeric: "tabular-nums" }}>
+                      <tr key={i} className="odd:bg-white even:bg-slate-50/40">
+                        <td className="border-b border-slate-100 px-3 py-2">{safeDate(tx.date)}</td>
+                        <td className="border-b border-slate-100 px-3 py-2">{tx.merchant}</td>
+                        <td className="border-b border-slate-100 px-3 py-2">{tx.category}</td>
+                        <td className="border-b border-slate-100 px-3 py-2 tabular-nums">
                           {formatMoneyCents(tx.amountCents, tx.currency)}
                         </td>
-                        <td style={td}>{tx.currency}</td>
-                        <td style={td}>{tx.comment || ""}</td>
+                        <td className="border-b border-slate-100 px-3 py-2">{tx.currency}</td>
+                        <td className="border-b border-slate-100 px-3 py-2">{tx.comment || ""}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -287,34 +257,38 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
 
       {/* Main table */}
       <div className="overflow-auto rounded-xl border border-slate-200">
-  <table className="w-full border-collapse text-sm">
-    <thead className="sticky top-0 bg-slate-50">
-      <tr className="text-left">
-        {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
-          <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">{h}</th>
-        ))}
-      </tr>
-    </thead>
-    <tbody>
-      {filtered.map(tx=>(
-        <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
-          <td className="border-b border-slate-100 px-3 py-2">{safeDate(tx.date)}</td>
-          <td className="border-b border-slate-100 px-3 py-2">{tx.merchant}</td>
-          <td className="border-b border-slate-100 px-3 py-2">
-            <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">{tx.category || "Uncategorized"}</span>
-          </td>
-          <td className="border-b border-slate-100 px-3 py-2 tabular-nums">{formatMoneyCents(tx.amountCents, tx.currency||"GBP")}</td>
-          <td className="border-b border-slate-100 px-3 py-2">{tx.currency||"GBP"}</td>
-          <td className="border-b border-slate-100 px-3 py-2">{tx.comment||""}</td>
-        </tr>
-      ))}
-      {!filtered.length && (
-        <tr><td className="px-3 py-6 text-slate-500" colSpan={6}>No matching transactions.</td></tr>
-      )}
-    </tbody>
-  </table>
-</div>
-</div>
+        <table className="w-full border-collapse text-sm">
+          <thead className="sticky top-0 bg-slate-50">
+            <tr className="text-left">
+              {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
+                <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(tx=>(
+              <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
+                <td className="border-b border-slate-100 px-3 py-2">{safeDate(tx.date)}</td>
+                <td className="border-b border-slate-100 px-3 py-2">{tx.merchant}</td>
+                <td className="border-b border-slate-100 px-3 py-2">
+                  <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
+                    {tx.category || "Uncategorized"}
+                  </span>
+                </td>
+                <td className="border-b border-slate-100 px-3 py-2 tabular-nums">
+                  {formatMoneyCents(tx.amountCents, tx.currency||"GBP")}
+                </td>
+                <td className="border-b border-slate-100 px-3 py-2">{tx.currency||"GBP"}</td>
+                <td className="border-b border-slate-100 px-3 py-2">{tx.comment||""}</td>
+              </tr>
+            ))}
+            {!filtered.length && (
+              <tr><td className="px-3 py-6 text-slate-500" colSpan={6}>No matching transactions.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
