@@ -142,11 +142,15 @@ export default function Dashboard() {
         <StatsOverview transactions={transactions} loading={loading} />
       </div>
 
-      {/* Table */}
-      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-4">
-        <TransactionTable rows={transactions} onBulkAdd={undefined} />
-      </section>
-
+{/* Table */}
+<section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 mt-4">
+  {/* Negative mx on mobile lets the scroll go edge-to-edge, then snaps back on sm+ */}
+  <div className="-mx-4 sm:mx-0">
+    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+      <TransactionTable rows={transactions} onBulkAdd={undefined} />
+    </div>
+  </div>
+</section>
       {error ? <div className="text-red-600 mt-3 text-sm">{error}</div> : null}
 
       {/* Modal (presentation only) */}

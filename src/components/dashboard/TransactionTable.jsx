@@ -148,7 +148,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   return (
     <div className="txTableWrap grid gap-4">
       {/* Controls */}
-      <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto]">
+      <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto] sm:items-center">
         <input
           type="search"
           placeholder="Search…"
@@ -215,7 +215,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
         </span>
       </div>
 
-      {/* Import preview */}
+      {/* Import preview (unchanged visually) */}
       {(importPreview.length > 0 || importErr) && (
         <div className="rounded-xl border border-slate-200 p-3">
           {importErr ? (
@@ -256,9 +256,18 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
       )}
 
       {/* Main table */}
-      <div className="overflow-auto rounded-xl border border-slate-200">
-        <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 bg-slate-50">
+      <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <table className="w-full table-fixed min-w-[900px] border-collapse text-sm">
+          <colgroup>
+            <col className="w-32" />  {/* Date */}
+            <col className="w-64" />  {/* Merchant */}
+            <col className="w-40" />  {/* Category */}
+            <col className="w-36" />  {/* Amount */}
+            <col className="w-28" />  {/* Currency */}
+            <col />                   {/* Comment */}
+          </colgroup>
+
+        <thead className="sticky top-0 bg-slate-50">
             <tr className="text-left">
               {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
                 <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">{h}</th>
@@ -268,18 +277,30 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           <tbody>
             {filtered.map(tx=>(
               <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
-                <td className="border-b border-slate-100 px-3 py-2">{safeDate(tx.date)}</td>
-                <td className="border-b border-slate-100 px-3 py-2">{tx.merchant}</td>
+                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{safeDate(tx.date)}</td>
+
+                {/* Truncate long merchant names */}
                 <td className="border-b border-slate-100 px-3 py-2">
-                  <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
+                  <div className="truncate max-w-[18rem]">{tx.merchant}</div>
+                </td>
+
+                <td className="border-b border-slate-100 px-3 py-2">
+                  <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs truncate max-w-[12rem]">
                     {tx.category || "Uncategorized"}
                   </span>
                 </td>
-                <td className="border-b border-slate-100 px-3 py-2 tabular-nums">
+
+                {/* Right-aligned, non-wrapping number */}
+                <td className="border-b border-slate-100 px-3 py-2 tabular-nums text-right whitespace-nowrap">
                   {formatMoneyCents(tx.amountCents, tx.currency||"GBP")}
                 </td>
-                <td className="border-b border-slate-100 px-3 py-2">{tx.currency||"GBP"}</td>
-                <td className="border-b border-slate-100 px-3 py-2">{tx.comment||""}</td>
+
+                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.currency||"GBP"}</td>
+
+                {/* Comment expands but truncates visually */}
+                <td className="border-b border-slate-100 px-3 py-2">
+                  <div className="truncate">{tx.comment||""}</div>
+                </td>
               </tr>
             ))}
             {!filtered.length && (
@@ -299,30 +320,11 @@ function safeDate(iso) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
 
-const th = {
-  textAlign: "left",
-  padding: "10px 12px",
-  borderBottom: "1px solid #f1f5f9",
-  whiteSpace: "nowrap",
-};
-const td = {
-  padding: "10px 12px",
-  borderBottom: "1px solid #f1f5f9",
-  whiteSpace: "nowrap",
-};
-const input = {
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid #d1d5db",
-  font: "inherit",
-};
-const button = {
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid #111827",
-  background: "white",
-  cursor: "pointer",
-};
+// (Style helpers kept for parity, not used by JSX now)
+const th = { textAlign: "left", padding: "10px 12px", borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" };
+const td = { padding: "10px 12px", borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" };
+const input = { padding: "10px 12px", borderRadius: 10, border: "1px solid #d1d5db", font: "inherit" };
+const button = { padding: "10px 12px", borderRadius: 10, border: "1px solid #111827", background: "white", cursor: "pointer" };
 
 function Badge({ text }) {
   return (
@@ -345,7 +347,6 @@ function Badge({ text }) {
  * - Returns array of objects keyed by header row.
  */
 function parseCSV(text) {
-  // Split into lines (handle CRLF/CR)
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
   if (!lines.length) return [];
 
@@ -357,9 +358,7 @@ function parseCSV(text) {
     if (!fields.length || fields.every(f => f.trim() === "")) continue;
 
     const obj = {};
-    for (let j = 0; j < headers.length; j++) {
-      obj[headers[j]] = fields[j] ?? "";
-    }
+    for (let j = 0; j < headers.length; j++) obj[headers[j]] = fields[j] ?? "";
     out.push(obj);
   }
   return out;
@@ -372,28 +371,14 @@ function splitCSVLine(line) {
 
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
-
     if (inQuotes) {
       if (ch === '"') {
-        // Look ahead for escaped quote
-        if (line[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        field += ch;
-      }
+        if (line[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+      } else { field += ch; }
     } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ",") {
-        result.push(field);
-        field = "";
-      } else {
-        field += ch;
-      }
+      if (ch === '"') inQuotes = true;
+      else if (ch === ",") { result.push(field); field = ""; }
+      else { field += ch; }
     }
   }
   result.push(field);
@@ -402,32 +387,25 @@ function splitCSVLine(line) {
 
 function normalizeDate(input) {
   if (!input) return "";
-  // Accept YYYY-MM-DD or dd/mm/yyyy or mm/dd/yyyy (best-effort)
   const t = input.trim();
-
-  // ISO-ish pass-through
   if (/^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0, 10);
 
-  // Try dd/mm/yyyy or mm/dd/yyyy
   const m = t.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
   if (m) {
     let d = parseInt(m[1], 10);
     let mo = parseInt(m[2], 10);
     let y = parseInt(m[3], 10);
     if (y < 100) y += 2000;
-    // choose day/month heuristic: if first > 12 treat as day-first
     if (d > 12) {
       const dd = String(d).padStart(2, "0");
       const mm = String(mo).padStart(2, "0");
       return `${y}-${mm}-${dd}`;
     }
-    // otherwise assume mm/dd/yyyy
     const dd = String(mo).padStart(2, "0");
     const mm = String(d).padStart(2, "0");
     return `${y}-${mm}-${dd}`;
   }
 
-  // Fallback: Date.parse
   const ts = Date.parse(t);
   if (Number.isFinite(ts)) {
     const d = new Date(ts);
