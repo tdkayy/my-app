@@ -2,11 +2,8 @@
 
 const API_URL =
     import.meta.env.PROD ?
-    (
-        import.meta.env.VITE_API_URL || "/api/proxy") // Vercel Serverless Function
-    :
-    (
-        import.meta.env.VITE_API_URL || "/api.php"); // local PHP dev
+    "/api/proxy" :
+    "/api.php"; // local PHP dev OR you can also use /api/proxy locally if you want
 
 export async function postToAPI(body) {
     const res = await fetch(API_URL, {
