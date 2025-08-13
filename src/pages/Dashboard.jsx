@@ -115,7 +115,7 @@ export default function Dashboard() {
           <button
             onClick={refresh}
             disabled={loading}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-60"
+            className="rounded-lg border border-slate-300 bg-amber-600 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-60"
           >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
@@ -130,7 +130,7 @@ export default function Dashboard() {
 
           <button
             onClick={handleLogout}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 bg-red-600 px-3 py-2 text-sm hover:bg-slate-50"
           >
             Log out
           </button>

@@ -1,4 +1,3 @@
-// src/components/dashboard/TransactionTable.jsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { formatMoneyCents } from "entities/transaction/transaction.model";
 
@@ -56,7 +55,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     });
   }, [sorted, debouncedQ, category, from, to]);
 
-  // CSV helpers (unchanged)
+  // ---------- CSV helpers ----------
   function escapeCSVField(v) {
     const s = v == null ? "" : String(v);
     return `"${s.replace(/"/g, '""')}"`;
@@ -90,7 +89,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // Import
+  // ---------- Import ----------
   function handleChooseFile() {
     setImportErr(""); setImportPreview([]); setImportCount(0);
     fileRef.current?.click();
@@ -146,9 +145,9 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   }
 
   return (
-    <div className="txTableWrap grid gap-4">
+    <section className="grid gap-4">
       {/* Controls */}
-      <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto] sm:items-center">
+      <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto_auto]">
         <input
           type="search"
           placeholder="Search…"
@@ -178,13 +177,13 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
         />
 
-        <span className="justify-self-start md:justify-self-end self-center text-sm text-slate-500">
+        <span className="justify-self-start md:justify-self-end self-center text-sm text-slate-500 whitespace-nowrap">
           {filtered.length} / {rows.length} rows
         </span>
 
         <button
           onClick={downloadCSV}
-          className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+          className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 whitespace-nowrap"
         >
           Download Transactions
         </button>
@@ -199,7 +198,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           />
           <button
             onClick={handleChooseFile}
-            className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50"
+            className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 whitespace-nowrap"
           >
             Import Transactions
           </button>
@@ -207,7 +206,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
             <button
               onClick={handleImportAdd}
               disabled={!importCount || importBusy}
-              className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap"
             >
               {importBusy ? "Importing…" : `Import & Add (${importCount})`}
             </button>
@@ -215,7 +214,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
         </span>
       </div>
 
-      {/* Import preview (unchanged visually) */}
+      {/* Import preview */}
       {(importPreview.length > 0 || importErr) && (
         <div className="rounded-xl border border-slate-200 p-3">
           {importErr ? (
@@ -255,19 +254,45 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
         </div>
       )}
 
-      {/* Main table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <table className="w-full table-fixed min-w-[900px] border-collapse text-sm">
+      {/* Mobile cards */}
+      <div className="grid gap-3 md:hidden">
+        {filtered.map(tx => (
+          <div key={tx.id} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div className="flex items-center justify-between text-sm text-slate-500">
+              <span>{safeDate(tx.date)}</span>
+              <span className="tabular-nums font-semibold text-slate-800">
+                {formatMoneyCents(tx.amountCents, tx.currency || "GBP")}
+              </span>
+            </div>
+            <div className="mt-1 font-medium text-slate-800 break-words">{tx.merchant}</div>
+            <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+              <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5">
+                {tx.category || "Uncategorized"}
+              </span>
+              <span>{tx.currency || "GBP"}</span>
+            </div>
+            {tx.comment ? (
+              <div className="mt-1 text-sm text-slate-600 break-words">{tx.comment}</div>
+            ) : null}
+          </div>
+        ))}
+        {!filtered.length && (
+          <div className="text-slate-500 text-sm">No matching transactions.</div>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200">
+        <table className="w-full border-collapse text-sm table-fixed md:min-w-full min-w-[720px]">
           <colgroup>
             <col className="w-32" />  {/* Date */}
-            <col className="w-64" />  {/* Merchant */}
+            <col className="w-56" />  {/* Merchant */}
             <col className="w-40" />  {/* Category */}
-            <col className="w-36" />  {/* Amount */}
-            <col className="w-28" />  {/* Currency */}
+            <col className="w-32" />  {/* Amount */}
+            <col className="w-24" />  {/* Currency */}
             <col />                   {/* Comment */}
           </colgroup>
-
-        <thead className="sticky top-0 bg-slate-50">
+          <thead className="sticky top-0 bg-slate-50">
             <tr className="text-left">
               {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
                 <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">{h}</th>
@@ -276,30 +301,22 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           </thead>
           <tbody>
             {filtered.map(tx=>(
-              <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
+              <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40 align-top">
                 <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{safeDate(tx.date)}</td>
-
-                {/* Truncate long merchant names */}
                 <td className="border-b border-slate-100 px-3 py-2">
-                  <div className="truncate max-w-[18rem]">{tx.merchant}</div>
+                  <span className="block truncate" title={tx.merchant}>{tx.merchant}</span>
                 </td>
-
                 <td className="border-b border-slate-100 px-3 py-2">
-                  <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs truncate max-w-[12rem]">
+                  <span className="inline-block max-w-full truncate rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
                     {tx.category || "Uncategorized"}
                   </span>
                 </td>
-
-                {/* Right-aligned, non-wrapping number */}
-                <td className="border-b border-slate-100 px-3 py-2 tabular-nums text-right whitespace-nowrap">
+                <td className="border-b border-slate-100 px-3 py-2 tabular-nums whitespace-nowrap">
                   {formatMoneyCents(tx.amountCents, tx.currency||"GBP")}
                 </td>
-
                 <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.currency||"GBP"}</td>
-
-                {/* Comment expands but truncates visually */}
-                <td className="border-b border-slate-100 px-3 py-2">
-                  <div className="truncate">{tx.comment||""}</div>
+                <td className="border-b border-slate-100 px-3 py-2 break-words">
+                  {tx.comment||""}
                 </td>
               </tr>
             ))}
@@ -309,109 +326,58 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }
 
-// --- helpers ---
+// --- helpers (unchanged) ---
 function safeDate(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
 
-// (Style helpers kept for parity, not used by JSX now)
-const th = { textAlign: "left", padding: "10px 12px", borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" };
-const td = { padding: "10px 12px", borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" };
-const input = { padding: "10px 12px", borderRadius: 10, border: "1px solid #d1d5db", font: "inherit" };
-const button = { padding: "10px 12px", borderRadius: 10, border: "1px solid #111827", background: "white", cursor: "pointer" };
-
-function Badge({ text }) {
-  return (
-    <span style={{
-      display: "inline-block",
-      padding: "2px 8px",
-      borderRadius: 999,
-      border: "1px solid #e5e7eb",
-      background: "#f9fafb",
-      fontSize: 12,
-    }}>
-      {text}
-    </span>
-  );
-}
-
-/**
- * Lightweight CSV → rows-of-objects parser.
- * - Supports quoted fields, commas inside quotes, and newlines.
- * - Returns array of objects keyed by header row.
- */
 function parseCSV(text) {
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
   if (!lines.length) return [];
-
   const headers = splitCSVLine(lines[0]).map(h => h.trim());
   const out = [];
-
   for (let i = 1; i < lines.length; i++) {
     const fields = splitCSVLine(lines[i]);
     if (!fields.length || fields.every(f => f.trim() === "")) continue;
-
     const obj = {};
     for (let j = 0; j < headers.length; j++) obj[headers[j]] = fields[j] ?? "";
     out.push(obj);
   }
   return out;
 }
-
 function splitCSVLine(line) {
-  const result = [];
-  let field = "";
-  let inQuotes = false;
-
+  const result = []; let field = ""; let inQuotes = false;
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (inQuotes) {
-      if (ch === '"') {
-        if (line[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
-      } else { field += ch; }
+      if (ch === '"') { if (line[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; } }
+      else { field += ch; }
     } else {
       if (ch === '"') inQuotes = true;
       else if (ch === ",") { result.push(field); field = ""; }
-      else { field += ch; }
+      else field += ch;
     }
   }
-  result.push(field);
-  return result;
+  result.push(field); return result;
 }
-
 function normalizeDate(input) {
   if (!input) return "";
   const t = input.trim();
   if (/^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0, 10);
-
   const m = t.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
   if (m) {
-    let d = parseInt(m[1], 10);
-    let mo = parseInt(m[2], 10);
-    let y = parseInt(m[3], 10);
+    let d = parseInt(m[1], 10); let mo = parseInt(m[2], 10); let y = parseInt(m[3], 10);
     if (y < 100) y += 2000;
-    if (d > 12) {
-      const dd = String(d).padStart(2, "0");
-      const mm = String(mo).padStart(2, "0");
-      return `${y}-${mm}-${dd}`;
-    }
-    const dd = String(mo).padStart(2, "0");
-    const mm = String(d).padStart(2, "0");
-    return `${y}-${mm}-${dd}`;
+    if (d > 12) { const dd = String(d).padStart(2, "0"); const mm = String(mo).padStart(2, "0"); return `${y}-${mm}-${dd}`; }
+    const dd = String(mo).padStart(2, "0"); const mm = String(d).padStart(2, "0"); return `${y}-${mm}-${dd}`;
   }
-
   const ts = Date.parse(t);
-  if (Number.isFinite(ts)) {
-    const d = new Date(ts);
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${mm}-${dd}`;
-  }
+  if (Number.isFinite(ts)) { const d = new Date(ts); const mm = String(d.getMonth() + 1).padStart(2, "0"); const dd = String(d.getDate()).padStart(2, "0"); return `${d.getFullYear()}-${mm}-${dd}`; }
   return "";
 }
