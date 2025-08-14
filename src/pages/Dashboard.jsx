@@ -154,7 +154,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mt-2 space-y-6">
       {/* Top bar */}
       <header className="bg-white/90 backdrop-blur -xl border border-slate-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-slate-600">Welcome {userEmail || window.__AUTH_EMAIL__ || ""}</div>
