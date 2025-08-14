@@ -8,7 +8,7 @@ export default function Layout({ children }) {
 
   return (
 <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900 selection:bg-blue-200/60 overflow-x-hidden">      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 mb-8">
         {/* Full-width, no max cap. Allows wrapping on smaller widths */}
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 h-auto">
           <div className="h-16 flex items-center justify-between gap-4 flex-wrap">

@@ -151,9 +151,9 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   }
 
   return (
-    <section className="space-y-4 lg:space-y-6">
-      {/* Controls */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto]">
+    <section className="max-w-70xl mx-auto px-4 sm:px-6 lg:px-8 my-10">
+    {/* Controls */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_160px_150px_150px_auto_auto] mb-6">
         <input
           type="search"
           placeholder="Search…"
@@ -187,30 +187,24 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           {filtered.length} / {rows.length} rows
         </span>
 
-        <div className="flex gap-2">
-          <button onClick={downloadCSV} className={btn}>Download Transactions</button>
+        <div className="flex flex-wrap gap-2">
+  <button onClick={downloadCSV} className={`${btn} w-full sm:w-auto`}>Download Transactions</button>
 
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,text/csv"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <button onClick={handleChooseFile} className={btn}>Import Transactions</button>
+  <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} className="hidden" />
+  <button onClick={handleChooseFile} className={`${btn} w-full sm:w-auto`}>Import Transactions</button>
 
-          {onBulkAdd ? (
-            <button
-              onClick={handleImportAdd}
-              disabled={!importCount || importBusy}
-              className={btn}
-              title={!importCount ? "Choose a CSV first" : ""}
-            >
-              {importBusy ? "Importing…" : `Import & Add (${importCount})`}
-            </button>
-          ) : null}
-        </div>
-      </div>
+  {onBulkAdd ? (
+    <button
+      onClick={handleImportAdd}
+      disabled={!importCount || importBusy}
+      className={`${btn} w-full sm:w-auto`}
+      title={!importCount ? "Choose a CSV first" : ""}
+    >
+      {importBusy ? "Importing…" : `Import & Add (${importCount})`}
+    </button>
+  ) : null}
+</div>
+</div>
 
       {/* Import preview */}
       {(importPreview.length > 0 || importErr) && (
@@ -223,74 +217,102 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
                 Previewing first {importPreview.length} of {importCount} parsed rows
               </div>
 
-              <div className="overflow-x-auto -mx-4 sm:mx-0">
-                <table className="min-w-[900px] w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="text-left">
-                      {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
-                        <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700 whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {importPreview.map((tx, i) => (
-                      <tr key={i} className="odd:bg-white even:bg-slate-50/40">
-                        <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{safeDate(tx.date)}</td>
-                        <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap max-w-[240px] truncate">{tx.merchant}</td>
-                        <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.category}</td>
-                        <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap tabular-nums">
-                          {formatMoneyCents(tx.amountCents, tx.currency)}
-                        </td>
-                        <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.currency}</td>
-                        <td className="border-b border-slate-100 px-3 py-2">{tx.comment || ""}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+  <table className="min-w-[900px] w-full border-collapse text-sm table-fixed">
+    <colgroup>
+      <col style={{width: 100}} />   {/* Date */}
+      <col style={{width: 100}} />   {/* Merchant */}
+      <col style={{width: 100}} />   {/* Category */}
+      <col style={{width: 100}} />   {/* Amount */}
+      <col style={{width: 100}} />   {/* Currency */}
+      <col style={{width: 100}}/>    {/* Comment */}
+    </colgroup>
+    <thead>
+      <tr className="text-left">
+        {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
+          <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700 whitespace-nowrap">{h}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {importPreview.map((tx, i) => (
+        <tr key={i} className="odd:bg-white even:bg-slate-50/40">
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{safeDate(tx.date)}</td>
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap truncate" title={tx.merchant}>{tx.merchant}</td>
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.category}</td>
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap tabular-nums">{formatMoneyCents(tx.amountCents, tx.currency)}</td>
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.currency}</td>
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap truncate" title={tx.comment || ""}>{tx.comment || ""}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
             </>
           )}
         </div>
       )}
 
       {/* Main table */}
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
-        <table className="min-w-[900px] w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-slate-50">
-            <tr className="text-left">
-              {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
-                <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700 whitespace-nowrap">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(tx=>(
-              <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{safeDate(tx.date)}</td>
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap max-w-[240px] truncate">{tx.merchant}</td>
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
-                  <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
-                    {tx.category || "Uncategorized"}
-                  </span>
-                </td>
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap tabular-nums">
-                  {formatMoneyCents(tx.amountCents, tx.currency||"GBP")}
-                </td>
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.currency||"GBP"}</td>
-                <td className="border-b border-slate-100 px-3 py-2">{tx.comment||""}</td>
-              </tr>
-            ))}
-            {!filtered.length && (
-              <tr>
-                <td className="px-3 py-6 text-slate-500" colSpan={6}>No matching transactions.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+<div className="overflow-x-auto rounded-xl border border-slate-200">
+  <table className="min-w-[900px] w-full border-collapse text-sm table-fixed">
+    <colgroup>
+      <col style={{width: 100}} />   {/* Date */}
+      <col style={{width: 100}} />   {/* Merchant */}
+      <col style={{width: 100}} />   {/* Category */}
+      <col style={{width: 100}} />   {/* Amount */}
+      <col style={{width: 100}} />   {/* Currency */}
+      <col style={{width: 100}} />   {/* Comment (flex) */}
+    </colgroup>
+    <thead className="sticky top-0 z-10 bg-slate-50">
+      <tr className="text-left">
+        {["Date","Merchant","Category","Amount","Currency","Comment"].map(h=>(
+          <th key={h} className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700 whitespace-nowrap">{h}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {filtered.map(tx=>(
+        <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{safeDate(tx.date)}</td>
+
+          {/* Merchant capped + ellipsis */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap truncate" title={tx.merchant}>
+            {tx.merchant}
+          </td>
+
+          {/* Category pill capped (no overflow) */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
+            <span className="inline-block max-w-[140px] truncate align-middle rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
+              {tx.category || "Uncategorized"}
+            </span>
+          </td>
+
+          {/* Amount stays whole but can’t grow the column */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap tabular-nums">
+            {formatMoneyCents(tx.amountCents, tx.currency||"GBP")}
+          </td>
+
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">{tx.currency||"GBP"}</td>
+
+          {/* Comment flex column: truncate to keep rows tidy */}
+          <td className="border-b border-slate-100 px-3 py-2 truncate" title={tx.comment||""}>
+            {tx.comment||""}
+          </td>
+        </tr>
+      ))}
+      {!filtered.length && (
+        <tr>
+          <td className="px-3 py-6 text-slate-500" colSpan={6}>No matching transactions.</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>    </section>
+
   );
 }
+
 
 // ---- helpers ----
 function safeDate(iso) {

@@ -1,12 +1,5 @@
 import React, { useState } from "react";
 
-/**
- * Props:
- * - onAdd: ({ date, merchant, amount }) => Promise<void> | void
- *   - date: ISO string 'YYYY-MM-DD'
- *   - merchant: string
- *   - amount: number | string (decimal, e.g., 12.34)
- */
 export default function AddTransactionForm({ onAdd }) {
   const [date, setDate] = useState("2025-08-10");
   const [merchant, setMerchant] = useState("");
