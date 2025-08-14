@@ -1,13 +1,15 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Code2, ExternalLink, Github } from "lucide-react";
+import { Code2, ExternalLink, Github, DollarSign } from "lucide-react";
 
 export default function Layout({ children }) {
   const location = useLocation();
 
   return (
-<div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900 selection:bg-blue-200/60 overflow-x-hidden">      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900 selection:bg-blue-200/60 overflow-x-hidden">
+      {" "}
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 mb-8">
         {/* Full-width, no max cap. Allows wrapping on smaller widths */}
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 h-auto">
@@ -18,7 +20,7 @@ export default function Layout({ children }) {
               className="flex items-center gap-2 min-w-0 flex-shrink"
             >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 grid place-items-center flex-shrink-0">
-                <Code2 className="w-5 h-5 text-white" />
+                <DollarSign className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0">
                 <div className="text-base font-bold leading-tight truncate">
@@ -66,16 +68,15 @@ export default function Layout({ children }) {
           </div>
         </div>
       </header>
-
       {/* Main (little breathing room on the sides for mobile) */}
       <main className="flex-1 px-4 sm:px-6 lg:px-8">{children}</main>
-
       {/* Footer */}
       <footer className="mt-auto bg-white/90 backdrop-blur border-t border-slate-200">
         {/* Full-width + wrap for small screens; center-align when stacked */}
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
           <div className="text-sm text-slate-600">
-            "The best time to plant a tree was 20 years ago. The second best time is now."
+            "The best time to plant a tree was 20 years ago. The second best
+            time is now."
           </div>
           <div className="flex items-center gap-6 text-sm text-slate-500 flex-wrap justify-center">
             <span>Technologies: React, PHP, Expensify API</span>

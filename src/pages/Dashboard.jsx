@@ -1,7 +1,11 @@
 // src/Dashboard.jsx
 import React, { useCallback, useEffect, useState } from "react";
 import { setCookie, getCookie, deleteCookie } from "lib/cookies";
-import { authAndGetToken, fetchAllTransactions, createNewTransaction } from "entities/transaction";
+import {
+  authAndGetToken,
+  fetchAllTransactions,
+  createNewTransaction,
+} from "entities/transaction";
 import AddTransactionForm from "components/dashboard/AddTransactionForm.jsx";
 import AuthForm from "components/dashboard/AuthForm.jsx";
 import TransactionTable from "components/dashboard/TransactionTable.jsx";
@@ -31,22 +35,25 @@ export default function Dashboard() {
     }
   }, [authToken]);
 
-  const handleSignIn = useCallback(async ({ email, password }) => {
-    setError("");
-    setLoading(true);
-    try {
-      const token = await authAndGetToken({ email, password });
-      setAuthToken(token);
-      setCookie("authToken", token, 7);
-      setUserEmail(email);
-      window.__AUTH_EMAIL__ = email;
-      await refresh();
-    } catch (e) {
-      setError(e?.message || "Sign in failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [refresh]);
+  const handleSignIn = useCallback(
+    async ({ email, password }) => {
+      setError("");
+      setLoading(true);
+      try {
+        const token = await authAndGetToken({ email, password });
+        setAuthToken(token);
+        setCookie("authToken", token, 7);
+        setUserEmail(email);
+        window.__AUTH_EMAIL__ = email;
+        await refresh();
+      } catch (e) {
+        setError(e?.message || "Sign in failed");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [refresh]
+  );
 
   useEffect(() => {
     if (!authToken) return;
@@ -74,18 +81,26 @@ export default function Dashboard() {
     window.__AUTH_EMAIL__ = "";
   }, []);
 
-  const handleAdd = useCallback(async ({ date, merchant, amount }) => {
-    if (!authToken) throw new Error("Not signed in");
-    const amountCents = Math.round(Number(amount) * 100);
-    try {
-      await createNewTransaction(authToken, { date, merchant, amountCents, currency: "GBP" });
-      await refresh();
-    } catch (e) {
-      console.error(e);
-      setError(e?.message || "Create failed");
-      throw e;
-    }
-  }, [authToken, refresh]);
+  const handleAdd = useCallback(
+    async ({ date, merchant, amount }) => {
+      if (!authToken) throw new Error("Not signed in");
+      const amountCents = Math.round(Number(amount) * 100);
+      try {
+        await createNewTransaction(authToken, {
+          date,
+          merchant,
+          amountCents,
+          currency: "GBP",
+        });
+        await refresh();
+      } catch (e) {
+        console.error(e);
+        setError(e?.message || "Create failed");
+        throw e;
+      }
+    },
+    [authToken, refresh]
+  );
 
   useEffect(() => {
     if (!error) return;
@@ -107,8 +122,13 @@ export default function Dashboard() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-slate-600">
           {userEmail ? (
-            <>Welcome <span className="font-medium text-slate-900">{userEmail}</span></>
-          ) : ("signed in")}
+            <>
+              Welcome{" "}
+              <span className="font-medium text-slate-900">{userEmail}</span>
+            </>
+          ) : (
+            "signed in"
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -116,7 +136,7 @@ export default function Dashboard() {
             onClick={refresh}
             disabled={loading}
             className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg px-3 py-2 hover:from-yellow-700 hover:to-yellow-800 whitespace-nowrap"
-            >
+          >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
 
@@ -131,7 +151,7 @@ export default function Dashboard() {
           <button
             onClick={handleLogout}
             className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 rounded-lg px-3 py-2 hover:from-red-700 hover:to-red-800 whitespace-nowrap"
-            >
+          >
             Log out
           </button>
         </div>
@@ -142,15 +162,15 @@ export default function Dashboard() {
         <StatsOverview transactions={transactions} loading={loading} />
       </div>
 
-{/* Table */}
-<section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 mt-4">
-  {/* Negative mx on mobile lets the scroll go edge-to-edge, then snaps back on sm+ */}
-  <div className="-mx-4 sm:mx-0">
-    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-      <TransactionTable rows={transactions} onBulkAdd={undefined} />
-    </div>
-  </div>
-</section>
+      {/* Table */}
+      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 mt-4">
+        {/* Negative mx on mobile lets the scroll go edge-to-edge, then snaps back on sm+ */}
+        <div className="-mx-4 sm:mx-0">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+            <TransactionTable rows={transactions} onBulkAdd={undefined} />
+          </div>
+        </div>
+      </section>
       {error ? <div className="text-red-600 mt-3 text-sm">{error}</div> : null}
 
       {/* Modal (presentation only) */}
@@ -169,7 +189,12 @@ export default function Dashboard() {
             </div>
             <div className="p-4">
               {/* vertical form layout already handled in AddTransactionForm */}
-              <AddTransactionForm onAdd={async (...a) => { await handleAdd(...a); setShowModal(false); }} />
+              <AddTransactionForm
+                onAdd={async (...a) => {
+                  await handleAdd(...a);
+                  setShowModal(false);
+                }}
+              />
             </div>
           </div>
         </div>

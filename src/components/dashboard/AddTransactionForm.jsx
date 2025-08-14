@@ -37,7 +37,9 @@ export default function AddTransactionForm({ onAdd }) {
     <form onSubmit={handleSubmit}>
       <div className="grid gap-3 md:grid-cols-[1fr,1.5fr,1fr,auto]">
         <label className="flex flex-col">
-          <span className="font-semibold text-sm mb-1 text-slate-700">Date</span>
+          <span className="font-semibold text-sm mb-1 text-slate-700">
+            Date
+          </span>
           <input
             name="date"
             type="date"
@@ -50,7 +52,9 @@ export default function AddTransactionForm({ onAdd }) {
         </label>
 
         <label className="flex flex-col">
-          <span className="font-semibold text-sm mb-1 text-slate-700">Merchant</span>
+          <span className="font-semibold text-sm mb-1 text-slate-700">
+            Merchant
+          </span>
           <input
             name="merchant"
             type="text"
@@ -64,7 +68,9 @@ export default function AddTransactionForm({ onAdd }) {
         </label>
 
         <label className="flex flex-col">
-          <span className="font-semibold text-sm mb-1 text-slate-700">Amount (£)</span>
+          <span className="font-semibold text-sm mb-1 text-slate-700">
+            Amount (£)
+          </span>
           <input
             name="amount"
             type="number"
