@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { DollarSign } from "lucide-react";
 
 export default function AuthForm({ onAuth, loading = false, error = "" }) {
   const [email, setEmail] = useState("expensifytest@mailinator.com ");
@@ -23,7 +23,7 @@ export default function AuthForm({ onAuth, loading = false, error = "" }) {
   return (
     <section className="max-w-xl mx-auto py-10">
       <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-600 text-white grid place-items-center shadow-sm">
-        <ShieldCheck className="w-6 h-6" />
+        <DollarSign className="w-6 h-6" />
       </div>
 
       <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-6">

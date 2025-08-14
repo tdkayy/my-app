@@ -86,7 +86,7 @@ export default function Layout({ children }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-600 grid place-items-center">
-                  <Code2 className="w-5 h-5 text-white" />
+                  <DollarSign className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-semibold">Adesanya Banking</span>
               </div>
@@ -146,6 +146,12 @@ export default function Layout({ children }) {
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="text-sm text-slate-600">
             "The best time to plant a tree was 20 years ago. The second best time is now."
+          </div>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <span>Technologies: React, PHP, Expensify API</span>
+            <span className="inline-flex items-center gap-1">
+              <ExternalLink className="w-4 h-4" /> Coming soon
+            </span>
           </div>
         </div>
       </footer>
