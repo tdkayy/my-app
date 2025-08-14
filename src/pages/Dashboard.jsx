@@ -1,16 +1,34 @@
-import React, { useCallback, useEffect, useState } from "react";
+// src/pages/Dashboard.jsx
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { setCookie, getCookie, deleteCookie } from "lib/cookies";
-import {
-  authAndGetToken,
-  fetchAllTransactions,
-  createNewTransaction,
-} from "entities/transaction";
+import { authAndGetToken, fetchAllTransactions, createNewTransaction } from "entities/transaction";
 import AddTransactionForm from "components/dashboard/AddTransactionForm.jsx";
 import AuthForm from "components/dashboard/AuthForm.jsx";
 import TransactionTable from "components/dashboard/TransactionTable.jsx";
 import StatsOverview from "components/dashboard/StatsOverview.jsx";
 import ErrorBoundary from "components/dashboard/ErrorBoundary";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
+
+// trivial inline modal (keeps your deps light)
+function Modal({ open, onClose, children, title }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg bg-white -xl shadow-xl border border-slate-200">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+            <h3 className="text-slate-800 font-semibold">{title}</h3>
+            <button className="p-1  hover:bg-slate-100" onClick={onClose} aria-label="Close">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="px-4 py-4">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [authToken, setAuthToken] = useState(getCookie("authToken") || "");
@@ -18,7 +36,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [transactions, setTransactions] = useState([]);
-  const [showModal, setShowModal] = useState(false); // purely presentational
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const modalFirstFieldRef = useRef(null);
+  useEffect(() => {
+    if (showAddModal) modalFirstFieldRef.current?.focus();
+  }, [showAddModal]);
 
   const refresh = useCallback(async () => {
     if (!authToken) return;
@@ -85,17 +108,32 @@ export default function Dashboard() {
       if (!authToken) throw new Error("Not signed in");
       const amountCents = Math.round(Number(amount) * 100);
       try {
-        await createNewTransaction(authToken, {
-          date,
-          merchant,
-          amountCents,
-          currency: "GBP",
-        });
-        await refresh();
+        await createNewTransaction(authToken, { date, merchant, amountCents, currency: "GBP" });
+        await refresh();            // authoritative refresh
+        setShowAddModal(false);     // close modal on success
       } catch (e) {
         console.error(e);
         setError(e?.message || "Create failed");
         throw e;
+      }
+    },
+    [authToken, refresh]
+  );
+
+  // bulk import from CSV (invoked by TransactionTable)
+  const handleBulkAdd = useCallback(
+    async (items) => {
+      if (!authToken) throw new Error("Not signed in");
+      setError("");
+      try {
+        for (const it of items) {
+          const row = await createNewTransaction(authToken, it);
+          setTransactions((prev) => [row, ...prev]);
+        }
+        await refresh();
+      } catch (e) {
+        console.error(e);
+        setError(e?.message || "Bulk add failed");
       }
     },
     [authToken, refresh]
@@ -116,88 +154,53 @@ export default function Dashboard() {
   }
 
   return (
-    <ErrorBoundary>
-      {/* Page header */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-slate-600">
-          {userEmail ? (
-            <>
-              Welcome{" "}
-              <span className="font-medium text-slate-900">{userEmail}</span>
-            </>
-          ) : (
-            "signed in"
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-6">
+      {/* Top bar */}
+      <header className="bg-white/90 backdrop-blur -xl border border-slate-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-slate-600">Welcome {userEmail || window.__AUTH_EMAIL__ || ""}</div>
+        <div className="flex items-center gap-2">
           <button
             onClick={refresh}
             disabled={loading}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg px-3 py-2 hover:from-yellow-700 hover:to-yellow-800 whitespace-nowrap"
+            className="h-9 -lg border border-slate-300 bg-white px-3 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-60"
           >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
-
           <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            onClick={() => setShowAddModal(true)}
+            className="h-9 inline-flex items-center gap-2 -lg bg-blue-600 px-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="w-4 h-4" />
             Add Transaction
           </button>
-
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 rounded-lg px-3 py-2 hover:from-red-700 hover:to-red-800 whitespace-nowrap"
+            className="h-9 -lg bg-rose-600 px-3 text-sm font-medium text-white shadow-sm hover:bg-rose-700"
           >
             Log out
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* KPI cards */}
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 p-4 mb-4">
-        <StatsOverview transactions={transactions} loading={loading} />
-      </div>
+      {/* Stats */}
+      <StatsOverview transactions={transactions} loading={loading} />
 
       {/* Table */}
-      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 mt-4">
-        {/* Negative mx on mobile lets the scroll go edge-to-edge, then snaps back on sm+ */}
-        <div className="-mx-4 sm:mx-0">
-          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-            <TransactionTable rows={transactions} onBulkAdd={undefined} />
-          </div>
-        </div>
-      </section>
-      {error ? <div className="text-red-600 mt-3 text-sm">{error}</div> : null}
+      <div className="bg-white/90 backdrop-blur -xl border border-slate-200">
+        <TransactionTable rows={transactions} onBulkAdd={handleBulkAdd} />
+      </div>
 
-      {/* Modal (presentation only) */}
-      {showModal && (
-        <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center p-4 bg-slate-900/40">
-          <div className="w-full sm:max-w-lg rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/70">
-            <div className="border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-              <h3 className="text-base font-semibold">Add New Transaction</h3>
-              <button
-                className="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="p-4">
-              {/* vertical form layout already handled in AddTransactionForm */}
-              <AddTransactionForm
-                onAdd={async (...a) => {
-                  await handleAdd(...a);
-                  setShowModal(false);
-                }}
-              />
-            </div>
-          </div>
+      {/* Error toast */}
+      {error ? (
+        <div className="-lg bg-rose-50 text-rose-700 border border-rose-200 px-3 py-2">
+          {error}
         </div>
-      )}
-    </ErrorBoundary>
+      ) : null}
+
+      {/* Add modal */}
+      <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="Add Transaction">
+        <AddTransactionForm onAdd={handleAdd} firstFieldRef={modalFirstFieldRef} />
+      </Modal>
+    </div>
   );
 }

@@ -45,7 +45,7 @@ export default function StatsOverview({ transactions = [], loading = false }) {
       </Card>
 
       <div className="md:col-span-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="text-[11px] font-semibold text-slate-500 mb-1">Top Merchant</div>
           <div className="text-base sm:text-lg"><strong>{topMerchant || "—"}</strong></div>
         </div>
@@ -56,7 +56,7 @@ export default function StatsOverview({ transactions = [], loading = false }) {
 
 function Card({ title, icon: Icon, children }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 mb-1">
         {Icon ? <Icon className="w-4 h-4 text-blue-600" /> : null}
         <span>{title}</span>
@@ -66,5 +66,5 @@ function Card({ title, icon: Icon, children }) {
   );
 }
 function Skeleton() {
-  return <div className="h-5 bg-slate-100 rounded-md" />;
+  return <div className="h-5 bg-slate-100 -md" />;
 }

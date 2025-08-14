@@ -4,7 +4,7 @@ import { formatMoneyCents } from "entities/transaction/transaction.model";
 
 // Small, shared button styles so both buttons look the same
 const btn =
-  "h-10 rounded-lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm " +
+  "h-10 -lg border border-slate-900 bg-white px-3 text-sm font-medium shadow-sm " +
   "hover:bg-slate-50 active:translate-y-px transition disabled:opacity-60 disabled:cursor-not-allowed";
 
 export default function TransactionTable({ rows = [], onBulkAdd }) {
@@ -190,81 +190,84 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 my-10">
-      {/* Controls */}
-      <div className="grid grid-cols-12 gap-3 mb-4 sm:mb-6">
-        <input
-          type="search"
-          placeholder="Search…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="col-span-12 md:col-span-4 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-        />
-
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="col-span-12 sm:col-span-6 md:col-span-2 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="date"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          className="col-span-6 md:col-span-2 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-        />
-        <input
-          type="date"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          className="col-span-6 md:col-span-2 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
-        />
-
-        <span className="col-span-12 md:col-span-2 self-center text-sm text-slate-500">
-          {filtered.length} / {rows.length} rows
-        </span>
-
-        {/* Actions — same look, full-width on mobile, auto on larger */}
-        <div className="col-span-12 md:col-span-12 lg:col-span-12 flex flex-wrap gap-2">
-          <button onClick={downloadCSV} className={`${btn} w-full sm:w-auto`}>
-            Download Transactions
-          </button>
-
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-8">
+      {/* Controls (capped like table columns) */}
+      <div className="mb-4 sm:mb-6 overflow-x-auto">
+        <div className="min-w-[900px] grid grid-cols-[minmax(220px,1fr)_160px_150px_150px_140px_auto_auto] items-center gap-3">
+          {/* Search */}
           <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,text/csv"
-            onChange={handleFileChange}
-            className="hidden"
+            type="search"
+            placeholder="Search…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="col-[1/2] h-10 -lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 min-w-0 truncate"
           />
-          <button
-            onClick={handleChooseFile}
-            className={`${btn} w-full sm:w-auto`}
-          >
-            Import Transactions
-          </button>
 
-          {onBulkAdd ? (
-            <button
-              onClick={handleImportAdd}
-              disabled={!importCount || importBusy}
-              className={`${btn} w-full sm:w-auto`}
-              title={!importCount ? "Choose a CSV first" : ""}
-            >
-              {importBusy ? "Importing…" : `Import & Add (${importCount})`}
+          {/* Category */}
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="col-[2/3] h-10 -lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 min-w-0 truncate"
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          {/* From / To */}
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="col-[3/4] h-10 -lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 min-w-0 truncate"
+          />
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="col-[4/5] h-10 -lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 min-w-0 truncate"
+          />
+
+          {/* Count */}
+          <span className="col-[5/6] text-sm text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis">
+            {filtered.length} / {rows.length} rows
+          </span>
+
+          {/* Actions */}
+          <div className="col-[6/8] flex flex-wrap items-center justify-end gap-2">
+            <button onClick={downloadCSV} className={`${btn} shrink-0`}>
+              Download Transactions
             </button>
-          ) : null}
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button onClick={handleChooseFile} className={`${btn} shrink-0`}>
+              Import Transactions
+            </button>
+
+            {onBulkAdd ? (
+              <button
+                onClick={handleImportAdd}
+                disabled={!importCount || importBusy}
+                className={`${btn} shrink-0`}
+                title={!importCount ? "Choose a CSV first" : ""}
+              >
+                {importBusy ? "Importing…" : `Import & Add (${importCount})`}
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
       {/* Import preview */}
       {(importPreview.length > 0 || importErr) && (
-        <div className="rounded-xl border border-slate-200 p-3">
+        <div className="-xl border border-slate-200 p-3 mb-4">
           {importErr ? (
             <div className="text-red-700 mb-2">{importErr}</div>
           ) : (
@@ -274,15 +277,15 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
                 rows
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <div className="overflow-x-auto -xl border border-slate-200">
                 <table className="min-w-[900px] w-full border-collapse text-sm table-fixed">
                   <colgroup>
-                    <col style={{ width: 100 }} /> {/* Date */}
-                    <col style={{ width: 100 }} /> {/* Merchant */}
-                    <col style={{ width: 100 }} /> {/* Category */}
-                    <col style={{ width: 100 }} /> {/* Amount */}
-                    <col style={{ width: 100 }} /> {/* Currency */}
-                    <col style={{ width: 100 }} /> {/* Comment */}
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
                   </colgroup>
                   <thead>
                     <tr className="text-left">
@@ -339,16 +342,17 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           )}
         </div>
       )}
+
       {/* Main table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="overflow-x-auto -xl border border-slate-200">
         <table className="min-w-[900px] w-full border-collapse text-sm table-fixed">
           <colgroup>
-            <col style={{ width: 100 }} /> {/* Date */}
-            <col style={{ width: 100 }} /> {/* Merchant */}
-            <col style={{ width: 100 }} /> {/* Category */}
-            <col style={{ width: 100 }} /> {/* Amount */}
-            <col style={{ width: 100 }} /> {/* Currency */}
-            <col style={{ width: 100 }} /> {/* Comment (flex) */}
+            <col style={{ width: 100 }} />
+            <col style={{ width: 100 }} />
+            <col style={{ width: 100 }} />
+            <col style={{ width: 100 }} />
+            <col style={{ width: 100 }} />
+            <col /> {/* flexible comment column */}
           </colgroup>
           <thead className="sticky top-0 z-10 bg-slate-50">
             <tr className="text-left">
@@ -384,9 +388,9 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
                   {tx.merchant}
                 </td>
 
-                {/* Category pill capped (no overflow) */}
+                {/* Category pill */}
                 <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
-                  <span className="inline-block max-w-[140px] truncate align-middle rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
+                  <span className="inline-block max-w-[160px] truncate align-middle -full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
                     {tx.category || "Uncategorized"}
                   </span>
                 </td>
@@ -418,7 +422,7 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
             )}
           </tbody>
         </table>
-      </div>{" "}
+      </div>
     </section>
   );
 }

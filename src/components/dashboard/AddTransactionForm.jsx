@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 export default function AddTransactionForm({ onAdd }) {
-  const [date, setDate] = useState("2025-08-10");
+  const [date, setDate] = useState("");
   const [merchant, setMerchant] = useState("");
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -47,7 +47,7 @@ export default function AddTransactionForm({ onAdd }) {
             onChange={(e) => setDate(e.target.value)}
             disabled={submitting}
             required
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
+            className="-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
@@ -58,12 +58,11 @@ export default function AddTransactionForm({ onAdd }) {
           <input
             name="merchant"
             type="text"
-            placeholder="Pret A Manger"
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
             disabled={submitting}
             required
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
+            className="-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
@@ -76,12 +75,11 @@ export default function AddTransactionForm({ onAdd }) {
             type="number"
             step="0.01"
             inputMode="decimal"
-            placeholder="12.34"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             disabled={submitting}
             required
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
+            className="-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
@@ -89,7 +87,7 @@ export default function AddTransactionForm({ onAdd }) {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-semibold shadow-sm hover:bg-blue-700 disabled:opacity-60"
+            className="-lg bg-blue-600 text-white px-4 py-2 text-sm font-semibold shadow-sm hover:bg-blue-700 disabled:opacity-60"
           >
             {submitting ? "Adding…" : "Add"}
           </button>
