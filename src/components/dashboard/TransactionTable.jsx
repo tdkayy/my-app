@@ -190,29 +190,21 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
   }
 
   return (
-    <section className="max-w-70xl mx-auto px-4 sm:px-6 lg:px-8 my-10">
+    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 my-10">
       {/* Controls */}
-      <div
-        className="
-    grid gap-3 mb-6
-    sm:grid-cols-2
-    lg:grid-cols-[minmax(240px,1fr)_100px_100px_100px_100px_minmax(240px,auto)]
-  "
-      >
-        {/* Search (flex column) */}
+      <div className="grid grid-cols-12 gap-3 mb-4 sm:mb-6">
         <input
           type="search"
           placeholder="Search…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 min-w-0"
+          className="col-span-12 md:col-span-4 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
         />
 
-        {/* Category */}
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 w-full lg:w-[100px] min-w-0"
+          className="col-span-12 sm:col-span-6 md:col-span-2 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
         >
           {categories.map((c) => (
             <option key={c} value={c}>
@@ -221,29 +213,25 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
           ))}
         </select>
 
-        {/* From */}
         <input
           type="date"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 w-full lg:w-[100px] min-w-0"
+          className="col-span-6 md:col-span-2 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
         />
-
-        {/* To */}
         <input
           type="date"
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 w-full lg:w-[100px] min-w-0"
+          className="col-span-6 md:col-span-2 h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500"
         />
 
-        {/* Count (fixed 100px at lg, doesn’t grow) */}
-        <span className="self-center text-sm text-slate-500 w-full lg:w-[100px] truncate lg:justify-self-end min-w-0">
+        <span className="col-span-12 md:col-span-2 self-center text-sm text-slate-500">
           {filtered.length} / {rows.length} rows
         </span>
 
-        {/* Buttons (rightmost flexible column) */}
-        <div className="flex flex-wrap gap-2 lg:justify-end min-w-0">
+        {/* Actions — same look, full-width on mobile, auto on larger */}
+        <div className="col-span-12 md:col-span-12 lg:col-span-12 flex flex-wrap gap-2">
           <button onClick={downloadCSV} className={`${btn} w-full sm:w-auto`}>
             Download Transactions
           </button>

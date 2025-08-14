@@ -5,15 +5,16 @@ import { Code2, ExternalLink, Github, DollarSign } from "lucide-react";
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const shell = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900 selection:bg-blue-200/60 overflow-x-hidden">
       {" "}
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 mb-8">
-        {/* Full-width, no max cap. Allows wrapping on smaller widths */}
-        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 h-auto">
+        <div className={shell}>
           <div className="h-16 flex items-center justify-between gap-4 flex-wrap">
+            {" "}
             {/* Brand (keeps from shrinking too small) */}
             <Link
               to={createPageUrl("Dashboard")}
@@ -31,7 +32,6 @@ export default function Layout({ children }) {
                 </div>
               </div>
             </Link>
-
             {/* Nav — wraps under brand on narrow widths */}
             <nav className="flex items-center gap-4 sm:gap-6 flex-wrap">
               <Link
@@ -69,11 +69,15 @@ export default function Layout({ children }) {
         </div>
       </header>
       {/* Main (little breathing room on the sides for mobile) */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8">{children}</main>
-      {/* Footer */}
+      <main className={shell + " flex-1"}>{children}</main> {/* Footer */}
       <footer className="mt-auto bg-white/90 backdrop-blur border-t border-slate-200">
-        {/* Full-width + wrap for small screens; center-align when stacked */}
-        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+        <div
+          className={
+            shell +
+            " py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left"
+          }
+        >
+          {" "}
           <div className="text-sm text-slate-600">
             "The best time to plant a tree was 20 years ago. The second best
             time is now."
