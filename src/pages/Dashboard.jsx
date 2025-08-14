@@ -1,4 +1,3 @@
-// src/Dashboard.jsx
 import React, { useCallback, useEffect, useState } from "react";
 import { setCookie, getCookie, deleteCookie } from "lib/cookies";
 import {

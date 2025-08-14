@@ -147,12 +147,6 @@ export default function Layout({ children }) {
           <div className="text-sm text-slate-600">
             "The best time to plant a tree was 20 years ago. The second best time is now."
           </div>
-          <div className="flex items-center gap-6 text-sm text-slate-500">
-            <span>Technologies: React, PHP, Expensify API</span>
-            <span className="inline-flex items-center gap-1">
-              <ExternalLink className="w-4 h-4" /> Coming soon
-            </span>
-          </div>
         </div>
       </footer>
     </div>
