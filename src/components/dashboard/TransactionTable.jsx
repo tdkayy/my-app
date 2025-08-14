@@ -343,87 +343,79 @@ export default function TransactionTable({ rows = [], onBulkAdd }) {
         </div>
       )}
 
-      {/* Main table */}
-      <div className="overflow-x-auto -xl border border-slate-200">
-        <table className="min-w-[900px] w-full border-collapse text-sm table-fixed">
-          <colgroup>
-            <col style={{ width: 100 }} />
-            <col style={{ width: 100 }} />
-            <col style={{ width: 100 }} />
-            <col style={{ width: 100 }} />
-            <col style={{ width: 100 }} />
-            <col /> {/* flexible comment column */}
-          </colgroup>
-          <thead className="sticky top-0 z-10 bg-slate-50">
-            <tr className="text-left">
-              {[
-                "Date",
-                "Merchant",
-                "Category",
-                "Amount",
-                "Currency",
-                "Comment",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700 whitespace-nowrap"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((tx) => (
-              <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
-                  {safeDate(tx.date)}
-                </td>
+{/* Main table */}
+<div className="overflow-x-auto -xl border border-slate-200">
+  <table className="min-w-[900px] w-full border-collapse text-sm table-fixed">
+    <colgroup>
+      {/* clamp(MIN px, PREFERRED %, MAX px) */}
+      <col style={{ width: "clamp(100px, 12%, 140px)" }} />  {/* Date */}
+      <col style={{ width: "clamp(140px, 24%, 260px)" }} />  {/* Merchant */}
+      <col style={{ width: "clamp(120px, 16%, 200px)" }} />  {/* Category */}
+      <col style={{ width: "clamp(120px, 14%, 180px)" }} />  {/* Amount */}
+      <col style={{ width: "clamp(90px, 10%, 120px)" }} />   {/* Currency */}
+      <col />                                                {/* Comment (flexes to fill) */}
+    </colgroup>
 
-                {/* Merchant capped + ellipsis */}
-                <td
-                  className="border-b border-slate-100 px-3 py-2 whitespace-nowrap truncate"
-                  title={tx.merchant}
-                >
-                  {tx.merchant}
-                </td>
+    <thead className="sticky top-0 z-10 bg-slate-50">
+      <tr className="text-left">
+        {["Date","Merchant","Category","Amount","Currency","Comment"].map(h => (
+          <th
+            key={h}
+            className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700 whitespace-nowrap"
+          >
+            {h}
+          </th>
+        ))}
+      </tr>
+    </thead>
 
-                {/* Category pill */}
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
-                  <span className="inline-block max-w-[160px] truncate align-middle -full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
-                    {tx.category || "Uncategorized"}
-                  </span>
-                </td>
+    <tbody>
+      {filtered.map(tx => (
+        <tr key={tx.id} className="odd:bg-white even:bg-slate-50/40">
+          {/* Date */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
+            {safeDate(tx.date)}
+          </td>
 
-                {/* Amount stays whole but can’t grow the column */}
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap tabular-nums">
-                  {formatMoneyCents(tx.amountCents, tx.currency || "GBP")}
-                </td>
+          {/* Merchant (truncate so it never forces the col wider) */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap truncate" title={tx.merchant}>
+            {tx.merchant}
+          </td>
 
-                <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
-                  {tx.currency || "GBP"}
-                </td>
+          {/* Category pill (cap width, never overflows) */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
+            <span className="inline-block max-w-[160px] truncate align-middle -full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs">
+              {tx.category || "Uncategorized"}
+            </span>
+          </td>
 
-                {/* Comment flex column: truncate to keep rows tidy */}
-                <td
-                  className="border-b border-slate-100 px-3 py-2 truncate"
-                  title={tx.comment || ""}
-                >
-                  {tx.comment || ""}
-                </td>
-              </tr>
-            ))}
-            {!filtered.length && (
-              <tr>
-                <td className="px-3 py-6 text-slate-500" colSpan={6}>
-                  No matching transactions.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          {/* Amount (tabular nums, keep whole) */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap tabular-nums">
+            {formatMoneyCents(tx.amountCents, tx.currency || "GBP")}
+          </td>
+
+          {/* Currency */}
+          <td className="border-b border-slate-100 px-3 py-2 whitespace-nowrap">
+            {tx.currency || "GBP"}
+          </td>
+
+          {/* Comment — absorbs the leftover space, but truncates long text */}
+          <td className="border-b border-slate-100 px-3 py-2 truncate" title={tx.comment || ""}>
+            {tx.comment || ""}
+          </td>
+        </tr>
+      ))}
+
+      {!filtered.length && (
+        <tr>
+          <td className="px-3 py-6 text-slate-500" colSpan={6}>
+            No matching transactions.
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>    </section>
   );
 }
 
